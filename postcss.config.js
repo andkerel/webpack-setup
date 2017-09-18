@@ -1,10 +1,8 @@
 module.exports = {
-  parser: 'sugarss',
+  parser: 'postcss-scss',
   map: false,
   plugins: {
-    'postcss-import': {},
-    //'cssnext': {}, //plugin pack, contains plugins that allow you to use future CSS features today.
-    'autoprefixer': {browsers: "last 2 versions"},
-    'cssnano': {safe: true}
+    'postcss-easy-import': {},
+    'autoprefixer': {browsers: ['last 2 versions', 'ie 10']}
   }
 }
