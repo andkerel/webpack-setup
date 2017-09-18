@@ -40,4 +40,4 @@ $RECYCLE.BIN/
 .tmp
 **/src/assets/images/svg-min/
 /src/svg
-
+**.**.map

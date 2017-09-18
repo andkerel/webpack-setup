@@ -1,12 +1,13 @@
 const path = require('path'),
       postCSS = require('./postcss.config.js'),
       ExtractTextPlugin = require('extract-text-webpack-plugin');
+      webpack = require('webpack');
 
-//set node env to start
-const nodeEnv = process.env.NODE_ENV || 'development';
+//set node env to start (process.env.node works with the cross-env npm package seen in package.json)
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 //check whether production; set to prod if true
-const isProd = nodeEnv === 'production';
+const isProd = process.env.NODE_ENV === 'production' ? true : false;
 
 //enter project folder name
 const PROJECT_NAME = 'ProjectName';
@@ -23,27 +24,21 @@ const configPaths = {
 
 //COMMON PROCESSES TO ALL ENVIRONMENTS
 
-//rules/loaders
-const rules = [
-    { //babel for js
-        test: /\.js$/, //files ending with .js
-        exclude: /(node_modules)/,
-        loader: ['babel-loader'] //use this loader
-    },
-    // { // regular css files
-    //     test: /\.css$/,
-    //     loader: ExtractTextPlugin.extract({
-    //     loader: 'css-loader?importLoaders=1',
-    //     }),
-    // }
+//loaders/rules
+const loaders = [
+  { //babel for js
+      test: /\.js$/, //files ending with .js
+      exclude: /(node_modules)/,
+      loader: ['babel-loader'] //use this loader
+  }
 ];
 
 //plugins
 const plugins = [
-    new ExtractTextPlugin({ // define where to save the compiled css file
-        filename:'style.css',
-        allChunks: true,
-    }),
+  new ExtractTextPlugin({ // define where to save the compiled css file
+      filename:'style.css',
+      allChunks: true,
+  }),
 ];
 
 
@@ -51,75 +46,104 @@ const plugins = [
 
 if (isProd) {
 
-    //rules
-    rules.push(
-        {
-            test: /\.(sass|scss)$/,
-            use: ExtractTextPlugin.extract({
-                fallback: 'style-loader',
-                use: [
-                    { loader: 'css-loader', options: { importLoaders: 1 } },
-                    'postcss-loader'
-                ]
-            })
-        }
-    );
+  //loaders
+  loaders.push(
+      {
+          test: /\.(sass|scss)$/,
+          loader: ExtractTextPlugin.extract({
+              use: [
+                { loader: 'css-loader' },
+                  { loader: 'postcss-loader' },
+                  { loader: 'sass-loader', options: {
+                  outputStyle: 'compressed'
+                  } }
+              ]
+          })
+      }
+  );
 
-    //plugins
-    plugins.push(
-        new webpack.optimize.UglifyJsPlugin({
-            compress: {
-                warnings: false,
-                conditionals: true,
-                unused: true,
-                comparisons: true,
-                sequences: true,
-                dead_code: true,
-                evaluate: true,
-                if_return: true,
-                join_vars: true,
-            },
-            output: {
-                comments: false,
-            },
-            ie8: false,
-        })
-    );
+  //plugins
+  plugins.push(
+      new webpack.optimize.UglifyJsPlugin({
+          sourceMap: true,
+          compress: {
+              warnings: false,
+              conditionals: true,
+              unused: true,
+              comparisons: true,
+              sequences: true,
+              dead_code: true,
+              evaluate: true,
+              if_return: true,
+              join_vars: true,
+          },
+          output: {
+              comments: false,
+          },
+          ie8: false,
+      })
+  );
 
 //DEVELOPMENT ONLY
 } else {
 
-    //rules/loaders
-    rules.push(
-        { // sass / scss loader
-            test: /\.(sass|scss)$/,
-            loader: ExtractTextPlugin.extract(['css-loader', 'sass-loader']) //sass-loader only for dev b/c it's faster
-        }
-    );
+  //loaders/loaders
+  loaders.push(
+      { // sass / scss loader
+          test: /\.(sass|scss)$/,
+          loader: ExtractTextPlugin.extract({
+            use: [
+              {loader: 'css-loader', options: { //technically don't need here yet, left in case want to use CSS in JS later
+                  sourceMap: true,
+                }
+              }, {loader: 'sass-loader', options: {
+                  sourceMap: true,
+                  outputStyle: 'compact' //necessary to use with sourcemap because of bug https://github.com/sass/libsass/issues/2312
+                }
+              }
+            ]
+          }) //sass-loader only for dev b/c it's faster
+      }
+  );
 
-    plugins.push(
-      function() {
-        this.plugin('watch-run', function(watching, callback) {
-              console.log('Begin compile at ' + new Date());
-              callback();
-          })
+  loaders.push(
+    { //js hint linter
+      test: /\.js$/, // include .js files
+      enforce: "pre", // preload the jshint loader
+      include: configPaths.src,
+      use: [
+        {
+          loader: 'jshint-loader'
         }
-    );
+      ]
+    }
+  );
+
+  plugins.push(
+    function() {
+      this.plugin('watch-run', function(watching, callback) {
+            console.log('Begin compile at ' + new Date());
+            callback();
+        })
+      }
+  );
+
 }
 
 let globalConfig = {
-    entry: ['core-js/fn/promise', configPaths.js, configPaths.sass],
-	  resolve: {
-		  extensions: ['.js', '.json', '.scss']
-	  },
-    output: {
-        filename:'scripts.js',
-        path: configPaths.build
-    },
-    module: {
-        rules
-    },
-    plugins
+  entry: ['core-js/fn/promise', configPaths.js, configPaths.sass],
+  resolve: {
+    extensions: ['.js', '.json', '.scss']
+  },
+  output: {
+      filename:'scripts.js',
+      path: configPaths.build
+  },
+  module: {
+      loaders
+  },
+  plugins,
+  devtool: process.env.NODE_ENV === 'production' ? "source-map" : "inline-source-map"
 };
 
 module.exports = globalConfig;
