@@ -55,6 +55,15 @@ root
 * `node-sass` (in the form of loader `sass-loader`) is run on dev as it is fairly quick.
 * PostCSS (`postcss-loader`) is run on production builds. it is slower but has more compression options.
 
+## CHANGELOG Sept 18/17
+
+* rename `rules` to `loaders` to match common syntax moving forward by webpack
+* remove `-d` and `-p` flags from `package.json` scripts to denote builds, use `process.env.NODE_ENV` instead **note installation of `cross-env` in npm required**
+* add sourcemaps to dev build
+* add jshint to dev build
+* add devtool method to global config for sourcemaps in browser
+* fix postcss for prod builds (**now includes autoprefixer**)
+* clean up package.json
 
 ## TODO
 
