@@ -17,25 +17,25 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "babel-core": "^6.24.1",
-    "babel-loader": "^7.0.0",
-    "babel-polyfill": "^6.23.0",
-    "babel-preset-env": "^1.5.2",
-    "cross-env": "^5.0.5",
-    "css-loader": "^0.28.2",
-    "extract-text-webpack-plugin": "^2.1.0",
-    "jshint": "^2.9.5",
-    "jshint-loader": "^0.8.4",
-    "node-sass": "^4.5.3",
-    "postcss-scss": "^1.0.2",
-    "sass-loader": "^6.0.5",
-    "webpack": "^2.5.1"
+    "@babel/core": "^7.4.3",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.0.5",
+    "babel-polyfill": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
+    "cross-env": "^5.2.0",
+    "css-loader": "^2.1.1",
+    "jshint": "^2.10.2",
+    "jshint-loader": "github:arizvisa/jshint-loader#webpack-4",
+    "node-sass": "^4.11.0",
+    "postcss-scss": "^2.0.0",
+    "sass-loader": "^7.1.0",
+    "webpack": "^4.30.0"
   },
   "dependencies": {
-    "autoprefixer": "^7.1.3",
-    "postcss": "^6.0.10",
+    "autoprefixer": "^9.5.1",
+    "postcss": "^7.0.14",
     "postcss-easy-import": "^3.0.0",
-    "postcss-loader": "^2.0.5",
-    "svgxuse": "^1.2.4"
+    "postcss-loader": "^3.0.0",
+    "svgxuse": "^1.2.6"
   }
 }
