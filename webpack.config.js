@@ -1,6 +1,6 @@
 const path = require('path'),
       postCSS = require('./postcss.config.js'),
-      ExtractTextPlugin = require('extract-text-webpack-plugin');
+      MiniCssExtractPlugin = require('mini-css-extract-plugin');
       webpack = require('webpack');
 
 //set node env to start (process.env.node works with the cross-env npm package seen in package.json)
@@ -24,8 +24,8 @@ const configPaths = {
 
 //COMMON PROCESSES TO ALL ENVIRONMENTS
 
-//loaders/rules
-const loaders = [
+//rules/rules
+const rules = [
   { //babel for js
       test: /\.js$/, //files ending with .js
       exclude: /(node_modules)/,
@@ -35,9 +35,8 @@ const loaders = [
 
 //plugins
 const plugins = [
-  new ExtractTextPlugin({ // define where to save the compiled css file
+  new MiniCssExtractPlugin({ // define where to save the compiled css file
       filename:'style.css',
-      allChunks: true,
   }),
 ];
 
@@ -46,19 +45,20 @@ const plugins = [
 
 if (isProd) {
 
-  //loaders
-  loaders.push(
+  //rules
+  rules.push(
       {
           test: /\.(sass|scss)$/,
-          loader: ExtractTextPlugin.extract({
-              use: [
-                { loader: 'css-loader' },
-                  { loader: 'postcss-loader' },
-                  { loader: 'sass-loader', options: {
-                  outputStyle: 'compressed'
-                  } }
-              ]
-          })
+          use: [
+            {
+              loader: MiniCssExtractPlugin.loader,
+            },
+            { loader: 'css-loader' },
+            { loader: 'postcss-loader' },
+            { loader: 'sass-loader', options: {
+            outputStyle: 'compressed'
+            } }
+          ]
       }
   );
 
@@ -87,26 +87,27 @@ if (isProd) {
 //DEVELOPMENT ONLY
 } else {
 
-  //loaders/loaders
-  loaders.push(
-      { // sass / scss loader
-          test: /\.(sass|scss)$/,
-          loader: ExtractTextPlugin.extract({
-            use: [
-              {loader: 'css-loader', options: { //technically don't need here yet, left in case want to use CSS in JS later
-                  sourceMap: true,
-                }
-              }, {loader: 'sass-loader', options: {
-                  sourceMap: true,
-                  outputStyle: 'compact' //necessary to use with sourcemap because of bug https://github.com/sass/libsass/issues/2312
-                }
-              }
-            ]
-          }) //sass-loader only for dev b/c it's faster
-      }
+  //rules/rules
+  rules.push(
+    { // sass / scss loader
+      test: /\.(sass|scss)$/,
+      use: [
+        {
+          loader: MiniCssExtractPlugin.loader,
+        },
+        {loader: 'css-loader', options: { //technically don't need here yet, left in case want to use CSS in JS later
+            sourceMap: true,
+          }
+        }, {loader: 'sass-loader', options: {
+            sourceMap: true,
+            outputStyle: 'compact' //necessary to use with sourcemap because of bug https://github.com/sass/libsass/issues/2312
+          }
+        }
+      ]//sass-loader only for dev b/c it's faster
+    }
   );
 
-  loaders.push(
+  rules.push(
     { //js hint linter
       test: /\.js$/, // include .js files
       enforce: "pre", // preload the jshint loader
@@ -132,18 +133,32 @@ if (isProd) {
 
 let globalConfig = {
   entry: ['core-js/fn/promise', configPaths.js, configPaths.sass],
+  mode: 'none', //i have manually config'd this myself
   resolve: {
     extensions: ['.js', '.json', '.scss']
   },
   output: {
-      filename:'scripts.js',
+      filename:'script.js',
       path: configPaths.build
   },
   module: {
-      loaders
+      rules
+  },
+  optimization: {
+    splitChunks: {
+      cacheGroups: {
+        styles: {
+          name: 'style',
+          test: /\.css$/,
+          chunks: 'all',
+          enforce: true,
+        },
+      },
+    },
   },
   plugins,
   devtool: process.env.NODE_ENV === 'production' ? "source-map" : "inline-source-map"
 };
+
 
 module.exports = globalConfig;
